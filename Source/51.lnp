@@ -1,0 +1,7 @@
+"Main.obj",
+"Modbus.obj",
+"System.obj",
+"Timer.obj",
+"Uart.obj" 
+TO "51" 
+RAMSIZE(256) 

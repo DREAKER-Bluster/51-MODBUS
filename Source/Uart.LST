@@ -1,0 +1,101 @@
+C51 COMPILER V9.02   UART                                                                  07/03/2017 17:56:35 PAGE 1   
+
+
+C51 COMPILER V9.02, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN Uart.OBJ
+COMPILER INVOKED BY: D:\Keil C51\C51\BIN\C51.EXE Uart.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "Project.H"
+   2          
+   3          UINT32  dwTickCount,dwIntTick;  //时钟
+   4          UINT8   idata sendBuf[16], receBuf[16]; //发送接收缓冲区
+   5          UINT8   idata checkoutError;    // ==2 偶校验错
+   6          UINT8   idata receTimeOut;              //接收超时
+   7          
+   8          UINT8   sendCount;              //发送字节个数
+   9          UINT8   receCount;          //接收到的字节个数
+  10          UINT8   sendPosi;           //发送位置
+  11          
+  12          void UartSendByte (UCHAR ucByte)
+  13          {
+  14   1              SBUF = ucByte;
+  15   1              while (!TI);
+  16   1              TI = 0;
+  17   1      }
+  18          
+  19          void UartSendBytes (UCHAR *buf,UINT nLen)
+  20          {
+  21   1              UINT i;
+  22   1      
+  23   1              for (i = 0;i < nLen;i ++)
+  24   1                      UartSendByte (buf[i]);
+  25   1      }
+  26          
+  27          void UartSendString (CHAR *ucBuf)
+  28          {
+  29   1              UINT i;
+  30   1      
+  31   1              for (i = 0; ucBuf[i]; i ++)
+  32   1                      UartSendByte (ucBuf[i]);
+  33   1      }
+  34          
+  35          void UartSendInt (INT nNumber)
+  36          {
+  37   1              UCHAR idata ucBuf[16];
+  38   1              UINT nLen;
+  39   1      
+  40   1              nLen = sprintf (ucBuf,"%d\r\n",nNumber);
+  41   1              UartSendBytes (ucBuf,nLen);
+  42   1      }
+  43          
+  44          void UartSendHex (UINT nNumber)
+  45          {
+  46   1              UCHAR idata ucBuf[16];
+  47   1              UINT nLen;
+  48   1      
+  49   1              nLen = sprintf (ucBuf,"0x%04X\r\n",nNumber);
+  50   1              UartSendBytes (ucBuf,nLen);
+  51   1      }
+  52          
+  53          void UartInit (ULONG baud, UCHAR mode)
+  54          {
+  55   1              IE=0x90;
+C51 COMPILER V9.02   UART                                                                  07/03/2017 17:56:35 PAGE 2   
+
+  56   1              TMOD = (TMOD & 0X0F) | 0X20;    //串口工作在方式1
+  57   1              TH1 = -22118400L/12/32/9600;    //求当波特率是9600时定时器的初值
+  58   1              TL1 = -22118400L/12/32/9600;
+  59   1              TR1 = 1;
+  60   1              SCON = 0X50;                    //01010000;
+  61   1              PCON |= 0X80;                   //波特率加倍
+  62   1      }
+*** WARNING C280 IN LINE 53 OF UART.C: 'baud': unreferenced local variable
+*** WARNING C280 IN LINE 53 OF UART.C: 'mode': unreferenced local variable
+  63          
+  64          void commIntProc(void) interrupt 4
+  65          {
+  66   1              if (!RI) return;
+  67   1      
+  68   1              RI = 0;
+  69   1      
+  70   1              receTimeOut = 20;
+  71   1              receBuf[receCount] = SBUF;
+  72   1              receCount ++;
+  73   1              receCount &= 0x0f;              // 最多只接收16个字节数据
+  74   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    232    ----
+   CONSTANT SIZE    =     14    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11      13
+   IDATA SIZE       =     34      32
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

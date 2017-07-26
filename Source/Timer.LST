@@ -1,0 +1,118 @@
+C51 COMPILER V9.02   TIMER                                                                 07/03/2017 17:56:35 PAGE 1   
+
+
+C51 COMPILER V9.02, COMPILATION OF MODULE TIMER
+OBJECT MODULE PLACED IN Timer.OBJ
+COMPILER INVOKED BY: D:\Keil C51\C51\BIN\C51.EXE Timer.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "Project.h"
+   2          
+   3          UINT8   idata c10ms;                    //10ms 计时
+   4          bit             b1ms,bt1ms,b10ms,bt10ms,b100ms,bt100ms; //定时标志位
+   5          
+   6          void TimerInit(void)
+   7          {
+   8   1              TMOD = 0x51;
+   9   1              TH0 = TIMER_HIGHT;
+  10   1              TL0 = TIMER_LOW;
+  11   1              TR0 = 1;
+  12   1          ET0 = 1;
+  13   1              TH1 = 0;                        //9600
+  14   1          TL1 = 0;
+  15   1              TR1 = 0;                        //定时器1用于计数定时器2用于波特
+  16   1              ET1 = 1;
+  17   1              //PT1 = 1;
+  18   1      
+  19   1              IT0 = 1;
+  20   1          IT1 = 1;
+  21   1              EX0 = 0;
+  22   1              PX0 = 1;
+  23   1          EX1 = 0;
+  24   1      }
+  25          
+  26          //定时处理
+  27          void timerProc(void)
+  28          {
+  29   1              static UINT8 c200ms;
+  30   1      
+  31   1              b1ms = 0;
+  32   1              b10ms = 0;
+  33   1              b100ms = 0;
+  34   1      
+  35   1              ET0 = 0;
+  36   1              dwTickCount = dwIntTick;
+  37   1              ET0 = 1;
+  38   1      
+  39   1              if(bt1ms)
+  40   1              {
+  41   2                      bt1ms = 0;
+  42   2                      b1ms = 1;
+  43   2      
+  44   2              if(receTimeOut>0)
+  45   2              {
+  46   3                  receTimeOut--;
+  47   3                  if(receTimeOut==0 && receCount>0)   //判断通讯接收是否超时
+  48   3                  {
+  49   4                      receCount = 0;      //将接收地址偏移寄存器清零
+  50   4                                      checkoutError = 0;
+  51   4                  }
+  52   3              }
+  53   2              }
+  54   1      
+  55   1              if(bt100ms)
+C51 COMPILER V9.02   TIMER                                                                 07/03/2017 17:56:35 PAGE 2   
+
+  56   1              {
+  57   2                      bt100ms = 0;
+  58   2                      b100ms = 1;
+  59   2              }
+  60   1          if(bt10ms)      //判断中断10ms标志位是否1
+  61   1          {
+  62   2              bt10ms = 0;     //清中断10ms标志位
+  63   2                      b10ms = 1;
+  64   2      
+  65   2              c200ms++;                   //200ms计时器加1
+  66   2              if(c200ms >= 20)            //判断是否计时到200ms
+  67   2              {
+  68   3                  c200ms = 0;             //清200ms计时器
+  69   3              }
+  70   2          }
+  71   1      }
+  72          
+  73          //定时器0 1ms 中断
+  74          void timer0IntProc() interrupt 1
+  75          {
+  76   1              TL0 = TIMER_LOW;
+  77   1          TH0 = TIMER_HIGHT;
+  78   1          dwIntTick++;
+  79   1              bt1ms = 1;
+  80   1          c10ms++;
+  81   1      
+  82   1          if(c10ms >= 10)
+  83   1          {
+  84   2              c10ms = 0;      //10ms计时器清零
+  85   2              bt10ms = 1;
+  86   2          }
+  87   1      }
+  88          
+  89          //计数器1中断
+  90          void counter1IntProc(void) interrupt 3 using 1
+  91          {
+  92   1      
+  93   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    173    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =      1    ----
+   BIT SIZE         =      6    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
